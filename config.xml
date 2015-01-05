@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMapConfig
+PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+"http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+<!-- Always ensure to use the correct XML header as above! -->
+<sqlMapConfig>
+
+    <!-- These settings control SqlMap configuration details, primarily to do with transaction
+    management. They are all optional (see the Developer Guide for more). -->
+    <settings
+        cacheModelsEnabled="true"
+        enhancementEnabled="true"
+        lazyLoadingEnabled="true"
+        useStatementNamespaces="false"
+        maxTransactions="300"
+        maxSessions="400"
+        maxRequests="2000"
+        />
+    <!-- Type aliases allow you to use a shorter name for long fully qualified class names. -->
+    <typeAlias alias="order" type="testdomain.Order"/>
+    <!-- Configure a datasource to use with this SQL Map using SimpleDataSource.
+    Notice the use of the properties from the above resource -->
+    <transactionManager type="JDBC">
+        <dataSource type="SIMPLE">
+            <property name="JDBC.Driver" value="org.postgresql.Driver"/>
+            <property name="JDBC.ConnectionURL" value="jdbc:postgresql://172.16.16.15:5432/kromco_mes"/>
+            <property name="JDBC.Username" value="postgres"/>
+            <property name="JDBC.Password" value="postgres"/>
+            <property name="Pool.MaximumActiveConnections" value="200"/>
+        </dataSource>
+    </transactionManager>
+  
+    <sqlMap resource="map_files/ActiveDevices.xml"/>
+    <sqlMap resource="map_files/BinTipping.xml"/>
+    <sqlMap resource="map_files/ProductLabeling.xml"/>
+    <sqlMap resource="map_files/Palletising.xml"/>
+    <sqlMap resource="map_files/Utils.xml"/>
+    
+    
+    
+</sqlMapConfig>

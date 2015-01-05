@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+        PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+        "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="BinTipping">
+    <select id="getMrlResults" resultClass="java.lang.String">
+        SELECT
+        mrl_results.mrl_result
+        FROM
+        public.deliveries,
+        public.grower_commitments,
+        public.spray_program_results,
+        public.mrl_results,
+        public.seasons
+        WHERE
+        deliveries.farm_code = grower_commitments.farm_code AND
+        deliveries.rmt_variety_code = spray_program_results.rmt_variety_code AND
+        deliveries.season_code = seasons.season_code AND
+        spray_program_results.grower_commitment_id = grower_commitments.id AND
+        mrl_results.spray_program_result_id = spray_program_results.id AND
+        seasons.season = grower_commitments.season AND
+        deliveries.id = #value# and
+        spray_program_results.cancelled is not true and
+        upper(spray_program_results.spray_result) = 'PASSED'
+    </select>
+    <select id="getBinOld" resultClass="za.co.multitier.midware.sys.datasource.Bin">
+        SELECT bins.id, bins.bin_number as bin_id, weight from bins
+        WHERE bin_number = #value#
+    </select>
+    <select id="getBinTipCriteria" resultClass="za.co.multitier.midware.sys.datasource.BinTipCriteria">
+        SELECT
+        run_bintip_criteria.farm_code,
+        run_bintip_criteria.treatment_code,
+        run_bintip_criteria.commodity_code,
+        run_bintip_criteria.variety_code,
+        run_bintip_criteria.class_code,
+        run_bintip_criteria.pc_code,
+        run_bintip_criteria.track_indicator_code,
+        run_bintip_criteria.cold_store_code,
+        run_bintip_criteria.season_code,
+        run_bintip_criteria.ripe_point_code,
+        run_bintip_criteria.rmt_product_type_code,
+        run_bintip_criteria.size_code
+        FROM
+        public.production_runs,
+        public.run_bintip_criteria
+        WHERE
+        run_bintip_criteria.production_run_id = production_runs.id AND
+        production_runs.id = #value#
+    </select>
+    <select id="getBin" resultClass="za.co.multitier.midware.sys.datasource.Bin">
+      SELECT
+        bins.bin_number AS bin_id,
+        bins.season_code,
+	bins.orchard_code,
+        bins.weight AS bin_weight,
+        bins.delivery_id,
+        bins.production_run_tipped_id,
+        farms.farm_code,
+        bins.exit_ref,
+        track_slms_indicators.track_slms_indicator_code AS track_indicator_code,
+        concat('PC',pc_codes.pc_code,'_',pc_codes.pc_name) as pc_code,
+        pc_codes.pc_code as pc_code_num,
+        rmt_products.variety_code,
+        rmt_products.commodity_code,
+        rmt_products.treatment_code,
+        rmt_products.product_class_code AS class_code,
+        ripe_points.cold_store_type_code AS cold_store_code,
+        bins.id, commodities.grower_commitment_required,
+        rmt_products.rmt_product_type_code,
+        rmt_products.size_code,
+        ripe_points.ripe_point_code
+        FROM
+        public.bins,
+        public.rmt_products,
+        public.ripe_points,
+        public.pc_codes,
+        public.farms,
+        public.track_slms_indicators,
+        public.commodities
+        WHERE
+        bins.rmt_product_id = rmt_products.id AND
+        bins.farm_id = farms.id AND
+        bins.track_indicator1_id = track_slms_indicators.id AND
+        rmt_products.ripe_point_id = ripe_points.id AND
+        pc_codes.pc_code = ripe_points.pc_code_code AND
+        rmt_products.commodity_code = commodities.commodity_code and
+        bins.bin_number = #value#
+
+    </select>
+    <select id="getRmtSetupPreSort" resultClass="za.co.multitier.midware.sys.datasource.RmtSetup">
+        SELECT
+        ripe_points.pc_code_code AS pc_code,
+        rmt_varieties.rmt_variety_code as variety_code,
+        commodities.commodity_code,
+        treatments.treatment_code,
+        product_classes.product_class_code AS class_code,
+        rmt_setups.cold_store_code,
+        production_schedules.season_code,
+        production_runs.farm_code,
+        track_indicators.track_indicator_code ,
+        sizes.size_code,ripe_points.ripe_point_code,
+        rmt_product_types.rmt_product_type_code
+
+        FROM
+
+        production_runs
+        left join ripe_points on production_runs.ripe_point_id = ripe_points.id
+        inner join production_schedules on production_runs.production_schedule_id = production_schedules.id
+        inner join rmt_setups on rmt_setups.production_schedule_id = production_schedules.id
+        left join rmt_product_types on production_runs.rmt_product_type_id = rmt_product_types.id
+        left join commodities on production_runs.commodity_id = commodities.id
+        left join rmt_varieties on production_runs.variety_id = rmt_varieties.id
+        left join treatments on production_runs.treatment_id = treatments.id
+        left join sizes on production_runs.size_id = sizes.id
+        left join track_indicators on production_runs.track_indicator_id = track_indicators.id
+        left join product_classes on  production_runs.product_class_id = product_classes.id
+
+
+        WHERE
+
+
+        production_runs.id = #value#
+    </select>
+    <select id="getRmtSetup" resultClass="za.co.multitier.midware.sys.datasource.RmtSetup">
+        SELECT
+        ripe_points.pc_code_code AS pc_code,
+        rmt_products.variety_code,
+        rmt_products.commodity_code,
+        rmt_products.treatment_code,
+        rmt_products.product_class_code AS class_code,
+        rmt_setups.cold_store_code,
+        production_schedules.season_code,
+        production_runs.farm_code,
+        rmt_setups.track_indicator_code
+        FROM
+        public.rmt_products,
+        public.ripe_points,
+        public.production_runs,
+        public.production_schedules,
+        public.rmt_setups
+        WHERE
+        rmt_products.ripe_point_id = ripe_points.id AND
+        production_runs.production_schedule_id = production_schedules.id AND
+        rmt_setups.production_schedule_id = production_schedules.id AND
+        rmt_setups.rmt_product_id = rmt_products.id AND
+        production_runs.id = #value#
+    </select>
+
+
+    <select id="getValidTippedCountForRunAndLine" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT
+        COUNT(public.bins.id) AS n_bins
+        FROM
+        public.production_runs
+        INNER JOIN public.lines ON (public.production_runs.line_id = public.lines.id)
+        inner join public.bins on (public.bins.production_run_tipped_id = public.production_runs.id)
+        WHERE
+        (((public.production_runs.production_run_status = 'active') OR
+        (public.production_runs.production_run_status = 'reconfiguring')) AND
+        (public.lines.id = #line_id#) AND
+        ( public.production_runs.production_run_code = #run_code# ) and
+        (public.bins.id is not null ) and
+        (public.bins.tipped_date_time is not null) and
+        (public.lines.id is not null))
+    </select>
+
+
+    <select id="getInvalidTippedCountForRunAndLine" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT
+        COUNT(public.bins_tipped_invalid.id) AS n_bins
+        FROM
+        public.production_runs
+        INNER JOIN public.lines ON (public.production_runs.line_id = public.lines.id)
+        inner join public.bins_tipped_invalid on (public.bins_tipped_invalid.production_run_code =
+        public.production_runs.production_run_code)
+        WHERE
+        (((public.production_runs.production_run_status = 'active') OR
+        (public.production_runs.production_run_status = 'reconfiguring')) AND
+        (public.lines.id = #line_id#) AND
+        ( public.production_runs.production_run_code = #run_code# ) and
+        (public.bins_tipped_invalid.id is not null ) and
+        (public.lines.id is not null))
+    </select>
+    <select id="getLineId" resultClass="java.lang.Integer">
+        SELECT id from lines where (line_code = #value#)
+    </select>
+    <select id="getTippedBin" resultClass="za.co.multitier.midware.sys.datasource.Bin">
+        SELECT bins.id, bins.bin_number as bin_id, bins.weight, production_runs.id as production_run_id,
+        production_runs.production_run_code from bins
+        inner join public.production_runs on (public.bins.production_run_tipped_id = public.production_runs.id)
+        WHERE bin_number = #value#
+    </select>
+     <select id="getDestroyedBin" resultClass="za.co.multitier.midware.sys.datasource.Bin">
+        SELECT bins.id, bins.bin_number as bin_id, bins.weight,bins.exit_ref from bins
+        WHERE bin_number = #value# and exit_ref is not null
+    </select>
+    <select id="getInvalidBin" resultClass="za.co.multitier.midware.sys.datasource.Bin">
+        SELECT * from bins_tipped_invalid
+        WHERE bin_id = #value#
+    </select>
+
+    <update id="createTippedBin" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        update bins set tipped_date_time = now(),production_run_tipped_id = #production_run_id#,shift_id = #shift_id#,dp_tiplot=#dp_tiplot#,
+        affected_by_env = 'midware',affected_by_program = 'bin_tipping', affected_by_function = 'create_tipped_bin',updated_by = 'system', updated_at = now()
+        where id = #id#
+    </update>
+
+    <insert id="createInvalidBin" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        INSERT INTO
+        bins_tipped_invalid (bin_id,
+        production_run_code, line_code, tipped_date_time,authorisor_name,weight,error_description)
+        VALUES (#bin_id#,#production_run_code#, #line_code#,
+        #tipped_date_time#,#authorisor_name#,#weight#,#error_description#)
+        <selectKey resultClass="int" keyProperty="id">
+            SELECT currval('bins_tipped_invalid_id_seq')
+        </selectKey>
+    </insert>
+    <insert id="createErrorBin" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        INSERT INTO
+        bintip_error_logs (bin_id,
+        production_run_code, line_code, error_date_time,authorisor_name,error_description)
+        VALUES (#bin_id#,
+        #production_run_code#, #line_code#, #error_date_time#,#authorisor_name#,#error_description#)
+    </insert>
+
+
+</sqlMap>

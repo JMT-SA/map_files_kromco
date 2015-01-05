@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+"http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="ActiveDevices">
+    <select id="getDevice" resultClass="za.co.multitier.midware.sys.datasource.ActiveDevice">
+        SELECT * from  active_devices where active_device_code = #value#
+    </select>
+     <select id="getDeviceByCodeAndSequence" parameterClass="java.util.Map" resultClass="za.co.multitier.midware.sys.datasource.ActiveDevice">
+        SELECT * from  active_devices where (active_device_code = #active_device_code# and day_line_batch_number = #day_line_batch_number#)
+    </select>
+</sqlMap>
+

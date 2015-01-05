@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+        PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+        "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="Palletising">
+    <select id="getPalletSetup" resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT
+        public.pallet_setups.*
+        FROM
+        public.carton_templates
+        INNER JOIN public.carton_setups ON (public.carton_templates.carton_setup_id = public.carton_setups.id)
+        INNER JOIN public.pallet_setups ON (public.carton_setups.id = public.pallet_setups.carton_setup_id)
+        WHERE
+        (public.carton_templates.id = #value#)
+        LIMIT 1
+    </select>
+    <select id="getPalletAccounts" parameterClass="za.co.multitier.midware.sys.datasource.Pallet" resultClass="java.util.HashMap">
+       SELECT
+       count(  distinct (cartons.account_code)),pallet_number ,max (cartons.account_code)as account_code
+       FROM
+       cartons
+       where
+       pallet_number= cast(#pallet_number# as character varying(200))
+       group by pallet_number
+    </select>
+    <select id="getFgSetup" resultClass="za.co.multitier.midware.sys.datasource.FgSetup">
+        SELECT * from fg_setups where carton_setup_id = #value#
+    </select>
+    <select id="getBayCartonCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+        SELECT count(*)
+        FROM
+        public.bay_cartons
+        INNER JOIN public.bays ON (public.bay_cartons.bay_id = public.bays.id)
+        WHERE
+        (public.bays.bay_code = #bay_number#) AND
+        (public.bays.skip_ip = #skip_ip#)
+    </select>
+    <select id="getPalletCartonCount"  resultClass="java.lang.Integer">
+        SELECT count(*)
+        FROM
+        cartons where (pallet_number =
+        cast(#pallet_number# as character varying(200)))
+    </select>
+    <insert id="logSeasonOrderQtyMail" parameterClass="java.util.HashMap">
+        INSERT INTO
+        season_order_qty_mail_logs (season_order_quantity_id, content,
+        sent_to, sent_date_time)
+        VALUES (#season_order_quantity_id#, #content#,
+        #to#,now())
+    </insert>
+
+    <select id="getLastCartonOnBay" parameterClass="java.util.HashMap"
+            resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT cartons.*
+        FROM
+        public.cartons
+        INNER JOIN public.bay_cartons on (cartons.id = bay_cartons.carton_id)
+        INNER JOIN public.bays ON (public.bay_cartons.bay_id = public.bays.id)
+        WHERE
+        (public.bays.bay_code = #bay_number#) AND
+        (public.bays.skip_ip = #skip_ip#)
+        ORDER BY bay_cartons.id desc
+        LIMIT 1
+    </select>
+    <select id="getPalletOrders" parameterClass="java.lang.Long" resultClass="java.util.HashMap">
+        SELECT
+        season_order_quantities.customer_order_number,season_order_quantities.season_code,season_order_quantities.id,
+        count(*) as n_cartons_on_order
+        FROM
+        public.cartons
+        inner join public.season_order_quantities
+        on cartons.order_number = season_order_quantities.customer_order_number and
+        season_order_quantities.season_code = cartons.season_code || '_' ||cartons.commodity_code
+        where cartons.pallet_id = #value#
+        group by
+        season_order_quantities.id,season_order_quantities.customer_order_number,season_order_quantities.season_code
+    </select>
+
+    <select id="getPalletTemplateForCartonSetup" resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT * from pallet_templates where carton_setup_id = #value#
+    </select>
+    <select id="getRunPalletizingCriteria" parameterClass="java.util.HashMap"
+            resultClass="za.co.multitier.midware.sys.datasource.PalletizingCriteria">
+        SELECT * from run_palletizing_criteria where production_run_id = #run_id# and
+        carton_setup_id = #carton_setup_id#
+    </select>
+    <select id="getPalletCartons" resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT * from cartons where pallet_id = #value#
+    </select>
+    <select id="getPalletId" resultClass="java.lang.Long">
+        SELECT pallets.id from pallets where pallet_number = cast(#value# as character varying(200))
+    </select>
+    <delete id="deleteBayCarton">
+        delete from bay_cartons where carton_id = #value#
+    </delete>
+    <select id="getBayCarton" parameterClass="java.util.HashMap"
+            resultClass="za.co.multitier.midware.sys.datasource.BayCarton">
+        SELECT public.bay_cartons.*
+        FROM
+        public.bay_cartons
+        INNER JOIN public.bays ON (public.bay_cartons.bay_id = public.bays.id)
+        INNER JOIN public.cartons ON (public.bay_cartons.carton_id = public.cartons.id)
+        WHERE
+        (public.bays.bay_code = #bay_number#) AND
+        (public.bays.skip_ip = #skip_ip#) AND
+        (public.cartons.carton_number = #carton_number#)
+    </select>
+    <select id="getBayPallet" parameterClass="java.util.HashMap"
+            resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT pallets.pallet_number,
+        pallets.carton_quantity_actual,
+        pallets.id,
+        pallets.fg_product_code,
+        pallets.build_status,
+        pallets.ca_cold_room_code,
+        pallets.quarantine,
+        pallets.inspection_code,
+        pallets.final_status_code,
+        pallets.oldest_pack_date_time,
+        pallets.print_status,
+        pallets.size_count_code,
+        pallets.carton_mark_code,
+        pallets.target_market_code,
+        pallets.grade_code,
+        pallets.marketing_variety_code,
+        pallets.old_pack_code,
+        pallets.thermocouple,
+        pallets.pallet_label_code,
+        pallets.qc_status_code,
+        pallets.pi,
+        pallets.country_origin_code,
+        pallets.inventory_code,
+        pallets.pick_reference_code,
+        pallets.pc_code,
+        pallets.commodity_code,
+        pallets.pallet_format_product_code,
+        pallets.organization_code,
+        pallets.label_standard_code,
+        pallets.inspect_type_code,
+        pallets.farm_code,
+        pallets.erp_cultivar,
+        pallets.quality_group_code,
+        pallets.class_code,
+        pallets.date_time_created,
+        pallets.date_time_erp_xmit,
+        pallets.pallet_type_id,
+        pallets.pallet_format_product_id,
+        pallets.pallet_label_setup_id,
+        pallets.pallet_template_id,
+        pallets.process_status,
+        pallets.qc_result_status,
+        pallets.actual_size_count_code,
+        pallets.cold_store_code,
+        pallets.date_time_completed,
+        pallets.rw_create_datetime,
+        pallets.rw_counter,
+        pallets.store_type_code,
+        pallets.party_name,
+        pallets.fg_code_old,
+        pallets.iso_week_code,
+        pallets.season_code,
+        pallets.order_number,
+        pallets.account_code,
+        pallets.cpp,
+        pallets.exit_ref,
+        pallets.remark,
+        pallets.carton_setup_id,
+        pallets.production_run_id,
+        pallets.zero_printed_carton_labels,
+        pallets.is_depot_pallet,
+        pallets.is_mapped,
+        pallets.is_new_pallet,
+        pallets.pt_product_characteristics,
+        pallets.pallet_reno_ref,
+        pallets.ppecb_inspection_id,
+        pallets.holdover,
+        pallets.consignment_note_number,
+        pallets.consigment_note_number,
+        pallets.load_detail_id,
+        pallets.holdover_quantity
+        FROM
+        public.bay_cartons
+        INNER JOIN public.bays ON (public.bay_cartons.bay_id = public.bays.id)
+        INNER JOIN public.pallets ON (public.bay_cartons.pallet_id = public.pallets.id)
+        WHERE
+        (public.bays.bay_code = #bay_number#) AND
+        (public.bays.skip_ip = #skip_ip#)
+        LIMIT 1
+    </select>
+    <select id="getBayForPallet" resultClass="za.co.multitier.midware.sys.datasource.Bay">
+        SELECT distinct(public.bays.*)
+        FROM
+        public.bay_cartons
+        INNER JOIN public.bays ON (public.bay_cartons.bay_id = public.bays.id)
+        WHERE
+        (public.bay_cartons.pallet_id = #value#)
+    </select>
+    <select id="getMixedPalletCriteria" resultClass="za.co.multitier.midware.sys.datasource.PalletizingCriteria">
+        select * from mixed_pallet_criteria where pallet_id = #value#
+    </select>
+
+    <select id="getOldestPackDateTime" resultClass="java.sql.Timestamp">
+        select MIN(cartons.pack_date_time)
+        from cartons where pallet_id = #value#
+    </select>
+
+    <select id="getCartonSetupPalletizingCriteria"
+            resultClass="za.co.multitier.midware.sys.datasource.PalletizingCriteria">
+        SELECT * from palletizing_criteria where
+        carton_setup_id = #value#
+    </select>
+    <select id="getSchedulePalletizingCriteria"
+            resultClass="za.co.multitier.midware.sys.datasource.PalletizingCriteria">
+        SELECT * from pallet_criteria where
+        production_schedule_id = #value#
+    </select>
+    <select id="getCartonItemPackDetails" resultClass="za.co.multitier.midware.sys.datasource.ItemPackProduct">
+        SELECT
+        public.trade_unit_setups.carton_pack_product_code,
+        public.retail_unit_setups.unit_pack_product_code,
+        public.item_pack_products.product_class_code,
+        public.item_pack_products.commodity_code,
+        public.item_pack_products.cosmetic_code_name,
+        public.item_pack_products.grade_code,
+        public.item_pack_products.marketing_variety_code,
+        public.item_pack_products.treatment_code,
+        public.item_pack_products.actual_count
+        FROM
+        public.cartons
+        INNER JOIN public.carton_templates ON (public.cartons.carton_template_id = public.carton_templates.id)
+        INNER JOIN public.carton_setups ON (public.carton_templates.carton_setup_id = public.carton_setups.id)
+        INNER JOIN public.retail_item_setups ON (public.carton_setups.id = public.retail_item_setups.carton_setup_id)
+        INNER JOIN public.item_pack_products ON (public.retail_item_setups.item_pack_product_id =
+        public.item_pack_products.id)
+        INNER JOIN public.retail_unit_setups ON (public.carton_setups.id = public.retail_unit_setups.carton_setup_id)
+        INNER JOIN public.trade_unit_setups ON (public.carton_setups.id = public.trade_unit_setups.carton_setup_id)
+        WHERE
+        (public.cartons.carton_number = #value#)
+    </select>
+    <select id="getPalletItemPackDetails" resultClass="za.co.multitier.midware.sys.datasource.ItemPackProduct">
+        SELECT
+        public.trade_unit_setups.carton_pack_product_code,
+        public.retail_unit_setups.unit_pack_product_code,
+        public.item_pack_products.product_class_code,
+        public.item_pack_products.commodity_code,
+        public.item_pack_products.cosmetic_code_name,
+        public.item_pack_products.grade_code,
+        public.item_pack_products.marketing_variety_code,
+        public.item_pack_products.treatment_code,
+        public.item_pack_products.actual_count
+        FROM
+        public.pallets
+        INNER JOIN public.pallet_templates ON (public.pallets.pallet_template_id = public.pallet_templates.id)
+        INNER JOIN public.carton_setups ON (public.pallet_templates.carton_setup_id = public.carton_setups.id)
+        INNER JOIN public.retail_item_setups ON (public.carton_setups.id = public.retail_item_setups.carton_setup_id)
+        INNER JOIN public.item_pack_products ON (public.retail_item_setups.item_pack_product_id =
+        public.item_pack_products.id)
+        INNER JOIN public.retail_unit_setups ON (public.carton_setups.id = public.retail_unit_setups.carton_setup_id)
+        INNER JOIN public.trade_unit_setups ON (public.carton_setups.id = public.trade_unit_setups.carton_setup_id)
+        WHERE
+        (public.pallets.pallet_number = cast(#value# as character varying(200)))
+    </select>
+
+    <select id="getPalletByNumber" resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT id,ppecb_inspection_id, qc_result_status,
+        qc_status_code,fg_product_code,build_status,ca_cold_room_code,quarantine,inspection_code,consigment_note_number,final_status_code,
+        oldest_pack_date_time,print_status,size_count_code,carton_mark_code,target_market_code,grade_code,marketing_variety_code,
+        old_pack_code,thermocouple,pallet_label_code,qc_status_code,carton_quantity_actual,pi,country_origin_code,inventory_code,
+        pick_reference_code,pc_code,commodity_code,pallet_format_product_code,organization_code,label_standard_code,inspect_type_code,
+        farm_code,erp_cultivar,quality_group_code,class_code,date_time_created,date_time_erp_xmit,pallet_type_id,pallet_format_product_id,
+        pallet_label_setup_id,pallet_template_id,process_status,qc_result_status,actual_size_count_code,cold_store_code,date_time_completed,
+        rw_create_datetime,rw_counter,store_type_code,party_name,fg_code_old,iso_week_code,season_code,order_number,account_code,cpp,
+        exit_ref,remark,carton_setup_id,production_run_id,zero_printed_carton_labels,is_depot_pallet,is_mapped,is_new_pallet,load_detail_id,
+        pt_product_characteristics,pallet_reno_ref,ppecb_inspection_id,holdover,consignment_note_number,
+        cast(pallet_number as bigint) pallet_number,holdover_quantity from pallets where pallet_number = cast(#value# as
+        character varying(200))
+    </select>
+    <select id="getBayBySkipIpAndBayNum" parameterClass="java.util.HashMap"
+            resultClass="za.co.multitier.midware.sys.datasource.Bay">
+        SELECT * from bays where skip_ip = #skip_ip# and bay_code = #bay_code#
+    </select>
+
+    <select id="getCartonsPerPalletForCartonSetup" resultClass="java.lang.Integer">
+        SELECT
+        public.cartons_per_pallets.cartons_per_pallet
+        FROM
+        public.pallet_setups
+        INNER JOIN public.carton_setups ON (public.pallet_setups.carton_setup_id = public.carton_setups.id)
+        INNER JOIN public.trade_unit_setups ON (public.carton_setups.id = public.trade_unit_setups.carton_setup_id)
+        INNER JOIN public.cartons_per_pallets ON (public.pallet_setups.pallet_format_product_code =
+        public.cartons_per_pallets.pallet_format_product_code)
+        AND (public.trade_unit_setups.carton_pack_product_code = public.cartons_per_pallets.carton_pack_product_code)
+        WHERE
+        (public.carton_setups.id = #value#)
+    </select>
+    <insert id="logOrderAdjustments" parameterClass="java.util.HashMap">
+        INSERT INTO season_order_qties_logs(
+        customer_order_number,
+        season_code, last_carton_on_bay, pallet_number, season_order_quantity_id,
+        n_cartons_of_pallet, quantity_added_to_order, quantity_removed_from_order,
+        transaction_date_time, skip_ip, bay_num)
+        VALUES
+        (#customer_order_number#, #season_code#, #last_carton_on_bay#,#pallet_number#,
+        #season_order_quantity_id#,#n_cartons_of_pallet#,#quantity_added_to_order#,#quantity_removed_from_order#,
+        now(),#skip_ip#,#bay_num#)
+
+    </insert>
+
+    <insert id="createPallet" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
+        INSERT INTO
+        pallets
+        (pallet_number,fg_product_code,build_status,cold_store_code,quarantine,inspection_code,consignment_note_number,
+        final_status_code,oldest_pack_date_time,print_status,size_count_code,carton_mark_code,target_market_code,
+        grade_code,marketing_variety_code,old_pack_code,thermocouple,pallet_label_code,qc_status_code,carton_quantity_actual,
+        pi,country_origin_code,inventory_code,pick_reference_code,pc_code,commodity_code,pallet_format_product_code,organization_code,
+        label_standard_code,inspect_type_code,farm_code,erp_cultivar,quality_group_code,class_code,date_time_created,
+        date_time_erp_xmit,pallet_type_id,pallet_format_product_id,production_run_id,pallet_label_setup_id,pallet_template_id,process_status,ca_cold_room_code,
+        store_type_code,party_name,fg_code_old,iso_week_code,season_code,order_number,account_code,cpp,
+        affected_by_env,affected_by_program, affected_by_function,updated_by,created_at)
+        VALUES (cast(#pallet_number# as character
+        varying(200)),#fg_product_code#,#build_status#,#cold_store_code#,#quarantine#,#inspection_code#,#consigment_note_number#,
+        #final_status_code#,#oldest_pack_date_time#,#print_status#,#size_count_code#,#carton_mark_code#,#target_market_code#,
+        #grade_code#,#marketing_variety_code#,#old_pack_code#,#thermocouple#,#pallet_label_code#,'UNINSPECTED',#carton_quantity_actual#,
+        #pi#,#country_origin_code#,#inventory_code#,#pick_reference_code#,#pc_code#,#commodity_code#,#pallet_format_product_code#,#organization_code#,
+        #label_standard_code#,#inspect_type_code#,#farm_code#,#erp_cultivar#,#quality_group_code#,#class_code#,#date_time_created#,
+        #date_time_erp_xmit#,#pallet_type_id#,#pallet_format_product_id#,#production_run_id#,#pallet_label_setup_id#,#pallet_template_id#,#process_status#,#ca_cold_room_code#,
+        #store_type_code#,#party_name#,#fg_code_old#,#iso_week_code#,#season_code#,#order_number#,#account_code#,#cpp#,
+         'midware','palletizing','create_pallet','system',now())
+    </insert>
+    <insert id="createBayCarton" parameterClass="za.co.multitier.midware.sys.datasource.BayCarton">
+        INSERT INTO
+        bay_cartons(carton_id, bay_id,pallet_id)
+        VALUES (#carton_id#, #bay_id#,#pallet_id#)
+    </insert>
+    <update id="updateCartonPalletNum" parameterClass="za.co.multitier.midware.sys.datasource.Carton">
+        UPDATE cartons set pallet_id = #pallet_id#, pallet_number = cast(#pallet_number# as character varying(200)),
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updateCartonPalletNum',updated_by = 'system', updated_at = now()
+        where (id = #id#)
+    </update>
+
+    <update id="batchUpdateBayNumbersOfBayCartons" parameterClass="java.util.HashMap">
+        UPDATE bay_cartons set bay_id = #bay_id# where (pallet_id = #pallet_id#)
+    </update>
+    <update id="propagatePalletQcVals" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
+        UPDATE cartons set qc_status_code = #qc_status_code#, qc_result_status = #qc_result_status#, ppecb_inspection_id
+        = #ppecb_inspection_id#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'propagatePalletQcVals',updated_by = 'system', updated_at = now()
+        where (pallet_number = cast(#pallet_number# as character varying(200)))
+    </update>
+    <update id="updatePalletCartonCount" parameterClass="java.util.HashMap">
+        UPDATE pallets set carton_quantity_actual = #new_quantity#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updatePalletCartonCount',updated_by = 'system', updated_at = now()
+        where (pallet_number = cast(#pallet_number# as
+        character varying(200)))
+    </update>
+
+    <update id="updatePalletQcStatus" parameterClass="java.util.HashMap">
+        UPDATE pallets set qc_status_code = #qc_status_code#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updatePalletQcStatus',updated_by = 'system', updated_at = now()
+        where (pallet_number = cast(#pallet_number# as character
+        varying(200)))
+    </update>
+    <update id="decreaseOrder" parameterClass="java.util.HashMap">
+        update season_order_quantities set quantity_produced = quantity_produced - #n_cartons_on_order#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'decreaseOrder',updated_by = 'system', updated_at = now()
+        where id = #id#
+    </update>
+    <update id="increaseOrder" parameterClass="java.util.HashMap">
+        update season_order_quantities set quantity_produced = quantity_produced + #amount_to_add#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'increaseOrder',updated_by = 'system', updated_at = now()
+        where id = #new_id#
+    </update>
+
+    <update id="updateCartonOrderNums" parameterClass="java.util.HashMap">
+        update cartons set order_number = #new_order_num#,
+       affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updateCartonOrderNums',updated_by = 'system', updated_at = now()
+        where pallet_id = #pallet_id#
+    </update>
+
+    <update id="updateCartonInspectionFlag" parameterClass="java.util.HashMap">
+        UPDATE cartons set is_inspection_carton = #is_inspection_carton#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updateCartonInspectionFlag',updated_by = 'system', updated_at = now()
+        where (id = #carton_id#)
+    </update>
+    <update id="updateCartonInspectionTimeOut" parameterClass="java.util.HashMap">
+        UPDATE cartons set qc_datetime_out = #qc_datetime#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updateCartonInspectionTimeOut',updated_by = 'system', updated_at = now()
+        where (id = #carton_id#)
+    </update>
+
+    <update id="updateCartonInspectionTimeIn" parameterClass="java.util.HashMap">
+        UPDATE cartons set qc_datetime_in = #qc_datetime#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updateCartonInspectionTimeIn',updated_by = 'system', updated_at = now()
+        where (id = #carton_id#)
+    </update>
+    <update id="updatePalletProcessStatus" parameterClass="java.util.HashMap">
+        UPDATE pallets set process_status = #new_status#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'updatePalletProcessStatus',updated_by = 'system', updated_at = now()
+
+        where (pallet_number = cast(#pallet_number# as character
+        varying(200)))
+    </update>
+    <update id="completePallet" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
+        UPDATE pallets set process_status = #process_status#,build_status = #build_status#,qc_result_status =
+        #qc_result_status#,ppecb_inspection_id = #ppecb_inspection_id#,
+        qc_status_code = #qc_status_code#, carton_quantity_actual = #carton_quantity_actual#, oldest_pack_date_time =
+        #oldest_pack_date_time#,
+        date_time_completed = #date_time_completed#, order_number = #order_number#,account_code = #account_code#,
+        affected_by_env = 'midware',affected_by_program = 'palletizing', affected_by_function = 'complete_pallet',updated_by = 'system', updated_at = now()
+        where (pallet_number =
+        cast(#pallet_number# as character varying(200)))
+    </update>
+    <delete id="clearPalletFromBay">
+        delete from bay_cartons where pallet_id = #value#
+    </delete>
+
+</sqlMap>

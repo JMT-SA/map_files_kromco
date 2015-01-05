@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+"http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="Utils">
+     <insert id="logMidwareError" parameterClass="za.co.multitier.midware.sys.datasource.MidwareErrorLogEntry">
+        INSERT INTO
+        midware_error_logs(object_id,production_schedule_name,production_run_code,line_code,farm_code,error_description,error_date_time,authorisor_name,error_code,mw_type,production_run_id,stack_trace,device_ip,short_description)
+        VALUES (#object_id# ,#production_schedule_name# ,#production_run_code# ,#line_code# ,#farm_code# ,#error_description# ,#error_date_time# ,#authorisor_name# ,#error_code# ,#mw_type# ,#production_run_id# ,#stack_trace#,#device_ip#,#short_description#)
+    </insert>
+    
+</sqlMap>

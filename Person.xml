@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+"http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="Person">
+    <select id="getPerson" resultClass="PersonData.Person">
+        SELECT PER_ID as id,
+        PER_FIRST_NAME as firstName,
+        PER_LAST_NAME as lastName,
+        PER_BIRTH_DATE as birthDate,
+        PER_WEIGHT_KG as weightInKgs,
+        PER_HEIGHT_M as heightInMetres
+        FROM PERSON
+        WHERE PER_ID = #value#
+    </select>
+    <select id="getPeople" resultClass="PersonData.Person">
+        SELECT PER_ID as id,
+        PER_FIRST_NAME as firstName,
+        PER_LAST_NAME as lastName,
+        PER_BIRTH_DATE as birthDate,
+        PER_WEIGHT_KG as weightInKgs,
+        PER_HEIGHT_M as heightInMetres
+        FROM PERSON
+    </select>
+    <insert id="insertPerson" parameterClass="PersonData.Person">
+        INSERT INTO
+        PERSON (PER_FIRST_NAME, PER_LAST_NAME,
+        PER_BIRTH_DATE, PER_WEIGHT_KG, PER_HEIGHT_M)
+        VALUES (#firstName#, #lastName#,
+        #birthDate#, #weightInKgs#, #heightInMetres#)
+    </insert>
+    <update id="updatePerson" parameterClass="PersonData.Person">
+        UPDATE PERSON
+        SET PER_FIRST_NAME = #firstName#,
+        PER_LAST_NAME = #lastName#, PER_BIRTH_DATE = #birthDate#,
+        PER_WEIGHT_KG = #weightInKgs#,
+        PER_HEIGHT_M = #heightInMetres#
+        WHERE PER_ID = #id#
+    </update>
+    <delete id="deletePerson" parameterClass="PersonData.Person">
+        DELETE PERSON
+        WHERE PER_ID = #id#
+    </delete>
+</sqlMap>

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap
+PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+"http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="ProductLabeling">
+
+    <select id="getCartonLink" parameterClass = "java.util.Map" resultClass="za.co.multitier.midware.sys.datasource.CartonLink">
+        SELECT * from active_carton_links where station_code = #station_code# and production_run_id = #run_id#
+    </select>
+    <select id = "getRUType" resultClass = "java.lang.String">
+        SELECT
+        public.unit_pack_products.type_code
+        FROM
+        public.unit_pack_products
+        INNER JOIN public.retail_unit_setups ON (public.unit_pack_products.id = public.retail_unit_setups.unit_pack_product_id)
+        INNER JOIN public.carton_setups ON (public.retail_unit_setups.carton_setup_id = public.carton_setups.id)
+        WHERE
+        (public.carton_setups.id = #value#)
+
+    </select>
+    <select id="getRebinLink" parameterClass = "java.util.Map" resultClass="za.co.multitier.midware.sys.datasource.RebinLink">
+        SELECT * from active_rebin_links where station_code = #station_code# and day_line_batch_number = #day_line_batch_number#
+        and production_run_id = #run_id#
+    </select>
+    <select id="getCartonTemplate" resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT * from carton_templates where id = #value#
+    </select>
+    <select id="getPUC" resultClass="za.co.multitier.midware.sys.datasource.PUC">
+        SELECT * from pucs where puc_code = #value#
+    </select>
+    <select id="getCarton" resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT * from cartons where carton_number = #value#
+    </select>
+    <select id="getOldestPalletCarton" resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT cartons.*,carton_templates.carton_setup_id
+        FROM
+        public.cartons
+        INNER JOIN public.carton_templates ON (public.cartons.carton_template_id = public.carton_templates.id)
+        where cartons.pallet_id = #value# order by date_time_created asc limit 1
+    </select>
+
+    <select id="getTopNinePucs" resultClass="java.lang.String">
+        SELECT puc ||' '||
+        (select case when egap isnull then ' ' else egap end)
+        as eugap FROM cartons
+        WHERE pallet_id = 3
+        GROUP BY puc ||' '||
+        (select case when egap isnull then ' ' else egap end)
+        ORDER BY COUNT(puc) DESC Limit 9
+    </select>
+    <select id="getPallet" resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT pallets.id,  cast(pallets.pallet_number as BIGINT) pallet_number,  pallets.fg_product_code,  pallets.build_status,  pallets.ca_cold_room_code,  pallets.quarantine,  pallets.inspection_code,  pallets.final_status_code,  pallets.oldest_pack_date_time,  pallets.print_status,  pallets.size_count_code,  pallets.carton_mark_code,  pallets.target_market_code,  pallets.grade_code,  pallets.marketing_variety_code,  pallets.old_pack_code,  pallets.thermocouple,  pallets.pallet_label_code,  pallets.qc_status_code,  pallets.carton_quantity_actual,  pallets.pi,  pallets.country_origin_code,  pallets.inventory_code,  pallets.pick_reference_code,  pallets.pc_code,  pallets.commodity_code,  pallets.pallet_format_product_code,  pallets.organization_code,  pallets.label_standard_code,  pallets.inspect_type_code,  pallets.farm_code,  pallets.erp_cultivar,  pallets.quality_group_code,  pallets.class_code,  pallets.date_time_created,  pallets.date_time_erp_xmit,  pallets.pallet_type_id,  pallets.pallet_format_product_id,  pallets.pallet_label_setup_id,  pallets.pallet_template_id,  pallets.process_status,  pallets.qc_result_status,  pallets.actual_size_count_code,  pallets.cold_store_code,  pallets.date_time_completed,  pallets.rw_create_datetime,  pallets.rw_counter,  pallets.store_type_code,  pallets.party_name,  pallets.fg_code_old,  pallets.iso_week_code,  pallets.season_code,  pallets.order_number,  pallets.account_code,  pallets.cpp,  pallets.exit_ref,  pallets.remark,  pallets.carton_setup_id,  pallets.production_run_id,  pallets.zero_printed_carton_labels,  pallets.is_depot_pallet,  pallets.is_mapped,  pallets.is_new_pallet,  pallets.pt_product_characteristics,  pallets.pallet_reno_ref,  pallets.ppecb_inspection_id,  pallets.holdover,  pallets.consignment_note_number,  pallets.consigment_note_number,  pallets.load_detail_id,  pallets.holdover_quantity from pallets where id = #value#
+    </select>
+    <select id="getPalletTemplate" resultClass="za.co.multitier.midware.sys.datasource.Pallet">
+        SELECT * from pallet_templates where id = #value#
+    </select>
+    <update id = "setPalletXmitDateTime" parameterClass = "java.util.Map">
+        update pallets SET date_time_erp_xmit = #curr_date_time# where id = #id#
+    </update>
+
+    <select id="getPalletLabelSetup" resultClass="za.co.multitier.midware.sys.datasource.PalletLabelSetup">
+        SELECT * from pallet_label_setups where id = #value#
+    </select>
+    <select id="getCartonSetup" resultClass="za.co.multitier.midware.sys.datasource.Carton">
+        SELECT public.carton_setups.*, public.retail_unit_setups.units_per_carton
+        FROM
+        public.retail_unit_setups
+        INNER JOIN public.carton_setups ON (public.retail_unit_setups.carton_setup_id = public.carton_setups.id) WHERE public.carton_setups.id = #value#
+    </select>
+
+    <select id="getCartonLabelSetup" resultClass="za.co.multitier.midware.sys.datasource.CartonLabelSetup">
+        SELECT * from carton_label_setups where id = #value#
+    </select>
+    <select id = "getPackMatSubtypeForRU" resultClass = "java.lang.String">
+        SELECT public.pack_material_products.pack_material_sub_type_code
+        FROM
+        public.retail_unit_setups
+        INNER JOIN public.carton_setups ON (public.retail_unit_setups.carton_setup_id = public.carton_setups.id)
+        INNER JOIN public.pack_material_products ON (public.retail_unit_setups.pack_material_product_code = public.pack_material_products.pack_material_product_code)
+        WHERE
+        (public.carton_setups.id = #value#)
+    </select>
+
+    <select id="getProductionRun" resultClass="za.co.multitier.midware.sys.datasource.ProductionRun">
+          SELECT production_runs.*,concat('PC',pc_codes.pc_code,'_',pc_codes.pc_name)as pc_code,pc_codes.pc_code as pc_code_num,track_indicators.track_indicator_code from production_runs
+        left join pc_codes on pc_codes.id = production_runs.pc_code_id  
+	left join  track_indicators on track_indicators.id = production_runs.track_indicator_id
+       where production_runs.id = #value#
+    </select>
+    <select id="getLinePhc" resultClass="java.lang.String">
+        SELECT line_phc from lines where id = #value#
+    </select>
+
+    <select id="getGtin" parameterClass="za.co.multitier.midware.sys.datasource.Carton" resultClass="java.lang.String">
+        SELECT
+        public.gtins.gtin_code
+        FROM
+        public.gtins
+        WHERE
+        ((now() <![CDATA[ < public.gtins.date_to AND  now() > public.gtins.date_from ]]>) AND
+        (public.gtins.organization_code = #organization_code#) AND
+        (public.gtins.commodity_code = #commodity_code#) AND
+        (public.gtins.marketing_variety_code = #marketing_variety_code#) AND
+        (public.gtins.old_pack_code = #old_pack_code#) AND
+        (public.gtins.brand_code = #brand#) AND
+        (public.gtins.actual_count = #actual_size_count_code#) AND
+        (public.gtins.grade_code = #grade_code#) AND
+        (public.gtins.inventory_code = #inventory_code_short#))
+        LIMIT 1
+    </select>
+
+
+    <select id="getCurrentIsoWeek" resultClass="java.lang.String">
+        SELECT iso_week_code from iso_weeks where ( Now() <![CDATA[ >= iso_date_from AND Now() <= iso_date_to]]>)
+    </select>
+    <select id="getSeasonOrderQtyDetails" parameterClass = "java.util.HashMap" resultClass="java.util.HashMap">
+        SELECT id,quantity_required,quantity_produced from season_order_quantities where season_code = #season_code# and
+        customer_order_number = #order_number#
+    </select>
+    <update id = "updateSeasonOrderQty" parameterClass = "java.util.HashMap">
+        update season_order_quantities SET quantity_produced = #new_qty# where id = #id#
+    </update>
+    <update id = "setMesCtlSequence" parameterClass = "za.co.multitier.midware.sys.datasource.MesControlFile">
+        update mes_control_files SET sequence_number = #sequence_number# where id = #id#
+    </update>
+    <select id = "getMesCtlSequence" resultClass = "za.co.multitier.midware.sys.datasource.MesControlFile">
+        select * from mes_control_files where object_type = #value#
+    </select>
+    <select id="getAccountCodeForFarmAndMarketer" resultClass="za.co.multitier.midware.sys.datasource.Account" parameterClass = "java.util.Map">
+        SELECT public.farm_puc_accounts.puc_code,
+        public.farm_puc_accounts.account_code
+        FROM   public.farm_puc_accounts
+        WHERE
+        (role_name='MARKETER' AND
+        farm_code=#farm_code# AND
+        party_name=#org_short_description#)
+        LIMIT 1
+    </select>
+    <insert id="createCarton" parameterClass="za.co.multitier.midware.sys.datasource.Carton">
+        INSERT INTO
+        cartons (bin_id,production_run_id,pallet_id,carton_label_station_code,carton_number,erp_station,erp_pack_point,commodity_code,
+        carton_mark_code,target_market_code,variety_short_long,fg_code_old,quarantine,inspection_type_code,carton_label_code,carton_pack_station_code,
+        order_number,pack_date_time,actual_size_count_code,grade_code,old_pack_code,qc_status_code,treatment_code,chemical_status_code,product_class_code,
+        erp_cultivar,track_indicator_code,pc_code,cold_store_code,inventory_code,farm_code,spray_program_code,carton_fruit_nett_mass,
+        quantity,pi,pick_reference,line_code,remarks,organization_code,quality_group_code,iso_week_code,season_code,puc,exit_reference,
+        exit_date_time,pallet_sequence_number,pallet_number,fg_product_code,date_time_created,date_time_erp_xmit,production_run_code,carton_template_id,account_code,egap,sell_by_code,packer_number,
+        treatment_type_code,items_per_unit,units_per_carton,fg_mark_code,extended_fg_code,unit_pack_product_code,gtin,shift_id,
+        affected_by_env,affected_by_program, affected_by_function,updated_by,created_at,n_labels_printed)
+        VALUES (#bin_id#,#production_run_id#,#pallet_id#,#carton_label_station_code#,#carton_number#,#erp_station#,#erp_pack_point#,#commodity_code#,
+        #carton_mark_code#,#target_market_code#,#variety_short_long#,#fg_code_old#,#quarantine#,#inspection_type_code#,#carton_label_code#,#carton_pack_station_code#,
+        #order_number#,#pack_date_time#,#actual_size_count_code#,#grade_code#,#old_pack_code#,'UNINSPECTED',#treatment_code#,#chemical_status_code#,#product_class_code#,
+        #erp_cultivar#,#track_indicator_code#,#pc_code#,#cold_store_code#,#inventory_code#,#farm_code#,#spray_program_code#,#carton_fruit_nett_mass#,
+        #quantity#,#pi#,#pick_reference#,#line_code#,#remarks#,#organization_code#,#quality_group_code#,#iso_week_code#,#season_code#,#puc#,#exit_reference#,
+        #exit_date_time#,#pallet_sequence_number#,#pallet_number#,#fg_product_code#,#date_time_created#,#date_time_erp_xmit#,#production_run_code#,#carton_template_id#,#account_code#,#egap#,#sell_by_code#,#packer_number#,
+        #treatment_type_code#,#items_per_unit#,#units_per_carton#,#fg_mark_code#,#extended_fg_code#,#unit_pack_product_code#,#gtin#,#shift_id#,
+        'midware','carton_labeling','create_carton','system',now(),'1')
+
+    </insert>
+ 
+    <select id="getRebin" parameterClass = "java.util.HashMap" resultClass="za.co.multitier.midware.sys.datasource.Rebin">
+        SELECT
+        track_slms_indicators.track_slms_indicator_code AS rmt_description,
+        farms.farm_code AS farm_id,
+        track_slms_indicators.track_slms_indicator_code AS rmt_code,
+        track_slms_indicators.track_slms_indicator_description as track_indicator_description,
+        pack_material_products.material_mass AS bin_weight,
+        ripe_points.pc_code_code AS pc_code,
+        ripe_points.ripe_point_code,
+        product_classes.product_class_description AS class_code,
+        rmt_products.size_code,
+        production_runs.line_code,
+        production_runs.production_run_code,
+        bins.production_run_rebin_id as production_run_id,
+        bins.bin_number AS rebin_number,
+        bins.id,
+        bins.binfill_station_code,
+        pack_material_products.pack_material_product_code,
+        bins.created_on
+        FROM
+        public.bins,
+        public.production_runs,
+        public.ripe_points,
+        public.rmt_products,
+        public.pack_material_products,
+        public.farms,
+        public.product_classes,
+        public.track_slms_indicators
+        WHERE
+        bins.production_run_rebin_id = production_runs.id AND
+        bins.pack_material_product_id = pack_material_products.id AND
+        bins.farm_id = farms.id AND
+        bins.rmt_product_id = rmt_products.id AND
+        rmt_products.ripe_point_id = ripe_points.id AND
+        rmt_products.product_class_id = product_classes.id and
+        bins.track_indicator1_id = track_slms_indicators.id and
+        bins.binfill_station_code = #station_code# and bins.print_number = #print_number# and bins.rebin_status = 'not printed'
+    </select>
+
+    <update id="updateCartonStats" parameterClass="za.co.multitier.midware.sys.datasource.Carton">
+        UPDATE production_run_stats set cartons_printed = cartons_printed + 1,cartons_weight = cartons_weight + #carton_fruit_nett_mass#  where (production_run_id = #production_run_id#)
+
+
+    </update>
+
+    <update id="updateRebinStats" parameterClass="za.co.multitier.midware.sys.datasource.Rebin">
+        UPDATE production_run_stats set rebins_printed = rebins_printed + 1,rebins_weight = rebins_weight + #weight# where (production_run_id = #production_run_id#)
+    </update>
+    
+  <update id="updateRebin" parameterClass="za.co.multitier.midware.sys.datasource.Rebin">
+        UPDATE bins set weight = #weight#,rebin_status = 'printed',print_number=bin_number ,rebin_date_time = #rebin_date_time#,
+                                  updated_by=#username#
+         where (bin_number = #rebin_number#)
+    </update>
+ 
+    <update id="updateCartonWeight" parameterClass="java.util.HashMap">
+        UPDATE cartons set carton_fruit_nett_mass_actual = #carton_fruit_nett_mass_actual# where (carton_number = #carton_number#)
+    </update>
+
+    <update id="incrementPalletsCompleted" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
+        UPDATE production_run_stats set pallets_completed = pallets_completed + 1 where (production_run_id = #production_run_id#)
+    </update>
+
+    <update id="updateBinsTippedStats" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        UPDATE production_run_stats set bins_tipped = bins_tipped + 1,bins_tipped_weight = bins_tipped_weight + #bin_weight# where (production_run_id = #production_run_id#)
+    </update>
+    <update id="incrementBinsTipped" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        UPDATE production_run_stats set bins_tipped = bins_tipped + 1 where (production_run_id = #production_run_id#)
+    </update>
+
+    <select id="getShift" resultClass="java.util.HashMap">
+        select * from shifts where now() between start_date_time and end_date_time and line_code = #value#
+    </select>
+
+
+</sqlMap>
