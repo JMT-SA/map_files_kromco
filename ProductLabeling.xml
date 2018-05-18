@@ -196,15 +196,15 @@ PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
         bins.binfill_station_code = #station_code# and bins.print_number = #print_number# and bins.rebin_status = 'not printed'
     </select>
 
-    <update id="updateCartonStats" parameterClass="za.co.multitier.midware.sys.datasource.Carton">
-        UPDATE production_run_stats set cartons_printed = cartons_printed + 1,cartons_weight = cartons_weight + #carton_fruit_nett_mass#  where (production_run_id = #production_run_id#)
+    <insert id="updateCartonStats" parameterClass="za.co.multitier.midware.sys.datasource.Carton">
+        INSERT INTO public.run_stats_jobs(production_run_id, cartons_printed, cartons_weight, rebins_printed,rebins_weight, bins_tipped, bins_tipped_weight, pallets_completed)
+                                          VALUES (#production_run_id#, 1, #carton_fruit_nett_mass#, 0, 0,0, 0, 0)
+    </insert>
 
-
-    </update>
-
-    <update id="updateRebinStats" parameterClass="za.co.multitier.midware.sys.datasource.Rebin">
-        UPDATE production_run_stats set rebins_printed = rebins_printed + 1,rebins_weight = rebins_weight + #weight# where (production_run_id = #production_run_id#)
-    </update>
+    <insert id="updateRebinStats" parameterClass="za.co.multitier.midware.sys.datasource.Rebin">
+        INSERT INTO public.run_stats_jobs(production_run_id, cartons_printed, cartons_weight, rebins_printed,rebins_weight, bins_tipped, bins_tipped_weight, pallets_completed)
+        VALUES (#production_run_id#, 0, 0, 1, #weight#,0, 0, 0)
+    </insert>
     
   <update id="updateRebin" parameterClass="za.co.multitier.midware.sys.datasource.Rebin">
         UPDATE bins set weight = #weight#,rebin_status = 'printed',print_number=bin_number ,rebin_date_time = #rebin_date_time#,
@@ -216,16 +216,19 @@ PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
         UPDATE cartons set carton_fruit_nett_mass_actual = #carton_fruit_nett_mass_actual# where (carton_number = #carton_number#)
     </update>
 
-    <update id="incrementPalletsCompleted" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
-        UPDATE production_run_stats set pallets_completed = pallets_completed + 1 where (production_run_id = #production_run_id#)
-    </update>
+    <insert id="incrementPalletsCompleted" parameterClass="za.co.multitier.midware.sys.datasource.Pallet">
+        INSERT INTO public.run_stats_jobs(production_run_id, cartons_printed, cartons_weight, rebins_printed,rebins_weight, bins_tipped, bins_tipped_weight, pallets_completed)
+        VALUES (#production_run_id#, 0, 0, 0,0,0, 0, 1)
+    </insert>
 
-    <update id="updateBinsTippedStats" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
-        UPDATE production_run_stats set bins_tipped = bins_tipped + 1,bins_tipped_weight = bins_tipped_weight + #bin_weight# where (production_run_id = #production_run_id#)
-    </update>
-    <update id="incrementBinsTipped" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
-        UPDATE production_run_stats set bins_tipped = bins_tipped + 1 where (production_run_id = #production_run_id#)
-    </update>
+    <insert id="updateBinsTippedStats" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        INSERT INTO public.run_stats_jobs(production_run_id, cartons_printed, cartons_weight, rebins_printed,rebins_weight, bins_tipped, bins_tipped_weight, pallets_completed)
+                                   VALUES (#production_run_id#, 0, 0, 0,0,1, #bin_weight# , 0)
+    </insert>
+    <insert id="incrementBinsTipped" parameterClass="za.co.multitier.midware.sys.datasource.Bin">
+        INSERT INTO public.run_stats_jobs(production_run_id, cartons_printed, cartons_weight, rebins_printed,rebins_weight, bins_tipped, bins_tipped_weight, pallets_completed)
+        VALUES (#production_run_id#, 0, 0, 0,0,1,0 , 0)
+    </insert>
 
     <select id="getShift" resultClass="java.util.HashMap">
         select * from shifts where now() between start_date_time and end_date_time and line_code = #value#
