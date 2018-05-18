@@ -129,7 +129,7 @@
         rmt_products.commodity_code,
         rmt_products.treatment_code,
         rmt_products.product_class_code AS class_code,
-        rmt_setups.cold_store_code,
+        ripe_points.cold_store_type_code as cold_store_code,
         production_schedules.season_code,
         production_runs.farm_code,
         rmt_setups.track_indicator_code
