@@ -191,6 +191,12 @@
         inner join public.production_runs on (public.bins.production_run_tipped_id = public.production_runs.id)
         WHERE bin_number = #value#
     </select>
+    <select id="getVehicleJobForBin" resultClass="java.lang.Integer">
+        select vehicle_jobs.vehicle_job_number from vehicle_jobs
+        join vehicle_job_units on vehicle_job_units.vehicle_job_id=vehicle_jobs.id
+        join bins on vehicle_job_units.unit_reference_id=bins.bin_number
+        where bins.bin_number=#value# and vehicle_jobs.date_time_offloaded is null order by vehicle_jobs.id DEsc LIMIT 1
+    </select>
      <select id="getDestroyedBin" resultClass="za.co.multitier.midware.sys.datasource.Bin">
         SELECT bins.id, bins.bin_number as bin_id, bins.weight,bins.exit_ref from bins
         WHERE bin_number = #value# and exit_ref is not null
